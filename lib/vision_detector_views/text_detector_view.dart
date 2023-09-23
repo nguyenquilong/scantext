@@ -45,6 +45,7 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
           customPaint: _customPaint,
           text: _text,
           lines: lines,
+          dataFromImage: dataFromImage,
           onImage: _processImage,
           initialCameraLensDirection: _cameraLensDirection,
           onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
