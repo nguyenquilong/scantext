@@ -21,7 +21,7 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
   String? _text;
   List<String> lines = [];
   String? dataFromImage;
-  List<String> keywords = ["Nguyen", "Le", "Tran"];
+  List<String> keywords = ["Nguyen ", "Le ", "Tran ", 'Vo '];
   String? issueDate;
   String? expirationDate;
   String? cardName;
@@ -41,7 +41,7 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     return Scaffold(
       body: Stack(children: [
         DetectorView(
-          title: 'Text Detector',
+          title: 'xxxxx',
           customPaint: _customPaint,
           text: _text,
           lines: lines,
@@ -72,11 +72,12 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
         return input;
       }
     }
-
     return null;
   }
 
   void findDate(List<String> inputList) {
+    issueDate = null;
+    expirationDate = null;
     for (String input in lines) {
       // Sử dụng biểu thức chính quy để kiểm tra xem dòng có đúng định dạng "MM/YY" không
       RegExp dateRegex = RegExp(r'\b(\d{1,2}/\d{2})\b');
