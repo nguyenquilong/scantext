@@ -14,6 +14,8 @@ class DetectorView extends StatefulWidget {
     required this.onImage,
     this.customPaint,
     this.text,
+    required this.lines,
+    required this.dataFromImage,
     this.initialDetectionMode = DetectorViewMode.liveFeed,
     this.initialCameraLensDirection = CameraLensDirection.back,
     this.onCameraFeedReady,
@@ -24,6 +26,8 @@ class DetectorView extends StatefulWidget {
   final String title;
   final CustomPaint? customPaint;
   final String? text;
+  final String? dataFromImage;
+  final List<String> lines;
   final DetectorViewMode initialDetectionMode;
   final Function(InputImage inputImage) onImage;
   final Function()? onCameraFeedReady;
@@ -63,6 +67,8 @@ class _DetectorViewState extends State<DetectorView> {
     return GalleryView(
             title: widget.title,
             text: widget.text,
+            lines: widget.lines,
+            dataFromImage: widget.dataFromImage,
             onImage: widget.onImage,
             onDetectorViewModeChanged: _onDetectorViewModeChanged);
   }

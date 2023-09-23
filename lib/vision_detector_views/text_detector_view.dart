@@ -17,7 +17,16 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
   bool _canProcess = true;
   bool _isBusy = false;
   CustomPaint? _customPaint;
+
   String? _text;
+  List<String> lines = [];
+  String? dataFromImage;
+  List<String> keywords = ["Nguyen", "Le", "Tran"];
+  String? issueDate;
+  String? expirationDate;
+  String? cardName;
+  String? cardNumber;
+
   var _cameraLensDirection = CameraLensDirection.back;
 
   @override
@@ -35,59 +44,64 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
           title: 'Text Detector',
           customPaint: _customPaint,
           text: _text,
+          lines: lines,
           onImage: _processImage,
           initialCameraLensDirection: _cameraLensDirection,
           onCameraLensDirectionChanged: (value) => _cameraLensDirection = value,
         ),
-        Positioned(
-            top: 30,
-            left: 100,
-            right: 100,
-            child: Row(
-              children: [
-                Spacer(),
-                Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: _buildDropdown(),
-                    )),
-                Spacer(),
-              ],
-            )),
       ]),
     );
   }
 
-  Widget _buildDropdown() => DropdownButton<TextRecognitionScript>(
-        value: _script,
-        icon: const Icon(Icons.arrow_downward),
-        elevation: 16,
-        style: const TextStyle(color: Colors.blue),
-        underline: Container(
-          height: 2,
-          color: Colors.blue,
-        ),
-        onChanged: (TextRecognitionScript? script) {
-          if (script != null) {
-            setState(() {
-              _script = script;
-              _textRecognizer.close();
-              _textRecognizer = TextRecognizer(script: _script);
-            });
-          }
-        },
-        items: TextRecognitionScript.values
-            .map<DropdownMenuItem<TextRecognitionScript>>((script) {
-          return DropdownMenuItem<TextRecognitionScript>(
-            value: script,
-            child: Text(script.name),
-          );
-        }).toList(),
-      );
+  String? findMatchingLine(List<String> inputList, List<String> keywords) {
+    for (String input in inputList) {
+      for (String keyword in keywords) {
+        if (input.toUpperCase().contains(keyword.toUpperCase())) {
+          return input;
+        }
+      }
+    }
+    return null; // Trả về null nếu không tìm thấy
+  }
+
+  String? findATMCardNumbers(List<String> inputList) {
+    for (String input in inputList) {
+      // Sử dụng biểu thức chính quy để kiểm tra xem dòng có đúng định dạng số thẻ ATM hay không
+      if (RegExp(r'^\d{16}$').hasMatch(input.replaceAll(" ", ""))) {
+        return input;
+      }
+    }
+
+    return null;
+  }
+
+  void findDate(List<String> inputList) {
+    for (String input in lines) {
+      // Sử dụng biểu thức chính quy để kiểm tra xem dòng có đúng định dạng "MM/YY" không
+      RegExp dateRegex = RegExp(r'\b(\d{1,2}/\d{2})\b');
+      Iterable<Match> matches = dateRegex.allMatches(input);
+
+      for (Match match in matches) {
+        String matchedDate = match.group(0)!;
+
+        // Chuyển đổi định dạng "MM/YY" thành đối tượng DateTime
+        try {
+          DateTime date = DateTime(
+              DateTime.now().year,
+              int.parse(matchedDate.split("/")[0]),
+              int.parse(matchedDate.split("/")[1]));
+
+          if (issueDate == null) {
+            issueDate = matchedDate;
+          } else
+            expirationDate ??= matchedDate;
+        } catch (e) {
+          // Bỏ qua các giá trị không hợp lệ
+        }
+      }
+      expirationDate ??= issueDate;
+    }
+  }
 
   Future<void> _processImage(InputImage inputImage) async {
     if (!_canProcess) return;
@@ -95,6 +109,8 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
     _isBusy = true;
     setState(() {
       _text = '';
+      _text = '';
+      lines = [];
     });
     final recognizedText = await _textRecognizer.processImage(inputImage);
     if (inputImage.metadata?.size != null &&
@@ -107,7 +123,32 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
       );
       _customPaint = CustomPaint(painter: painter);
     } else {
-      _text = 'Recognized text:\n\n${recognizedText.text}';
+      lines = recognizedText.text.split('\n');
+      debugPrint('longnq xxxx $lines');
+
+      String? cardName = findMatchingLine(lines, keywords);
+
+      // if (result != null) {
+      //   debugPrint("Dòng chứa tên người dùng: $result");
+      // } else {
+      //   debugPrint("Không tìm thấy dòng chứa tên người dùng.");
+      // }
+
+      String? cardNumber = findATMCardNumbers(lines);
+
+      // if(atmNumber != null) {
+      //   debugPrint("Số thẻ ATM: $atmNumber");
+      // } else {
+      //   debugPrint("Không tìm thấy số ATM");
+      // }
+
+      findDate(lines);
+
+      // _text = 'Recognized text:\n\n${recognizedText.text}';
+      // _text = 'Recognized text____ : ${recognizedText.text}';
+      dataFromImage = recognizedText.text;
+      _text =
+          'Thông tin thẻ: \n\n Tên chủ thẻ: $cardName  \n\n Số thẻ: $cardNumber  \n\n Ngày phát hành: $issueDate \n\n Ngày hết hạn: $expirationDate ';
       // TODO: set _customPaint to draw boundingRect on top of image
       _customPaint = null;
     }
