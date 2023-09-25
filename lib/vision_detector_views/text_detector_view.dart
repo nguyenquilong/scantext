@@ -21,7 +21,7 @@ class _TextRecognizerViewState extends State<TextRecognizerView> {
   String? _text;
   List<String> lines = [];
   String? dataFromImage;
-  List<String> keywords = ["Nguyen ", "Le ", "Tran ", 'Vo '];
+  List<String> keywords = ["Nguyen ", "Le ", "Tran ", 'Vo ', 'Mai '];
   String? issueDate;
   String? expirationDate;
   String? cardName;
